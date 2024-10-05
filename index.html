@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up & Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 300px;
+            margin: 50px auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        input[type="text"], input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #0501ff;
+            color: rgb(255, 255, 255);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #fff700;
+        }
+
+        #message {
+            text-align: center;
+            margin-top: 20px;
+            color: #28a745;
+        }
+
+        #userList {
+            margin-top: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tolong daftar yang Bener Bree</h1>
+        <form id="signupForm">
+            <input type="text" id="signupName" placeholder="Nama Lengkap" required>
+            <input type="email" id="signupEmail" placeholder="Email" required>
+            <input type="password" id="signupPassword" placeholder="Kata Sandi" required>
+            <button type="submit">Daftar</button>
+        </form>
+
+        <h1>Login</h1>
+        <form id="loginForm">
+            <input type="email" id="loginEmail" placeholder="Email" required>
+            <input type="password" id="loginPassword" placeholder="Kata Sandi" required>
+            <button type="submit">Login</button>
+        </form>
+        
+        <a href="#" id="forgotPasswordLink">Lupa Kata Sandi?</a>
+
+        <div id="forgotPasswordForm" class="hidden">
+            <h2>Reset Kata Sandi</h2>
+            <input type="email" id="resetEmail" placeholder="Email" required>
+            <button id="resetPasswordButton">Kirim Link Reset</button>
+        </div>
+
+        <div id="message"></div>
+
+        <h2>Pengguna Terdaftar:</h2>
+        <ul id="userList"></ul>
+    </div>
+
+    <script>
+        // Fungsi untuk memuat pengguna terdaftar dari LocalStorage
+        function loadUsers() {
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const userList = document.getElementById('userList');
+            userList.innerHTML = '';
+            users.forEach(user => {
+                let li = document.createElement('li');
+                li.textContent = `${user.name} - ${user.email}`;
+                userList.appendChild(li);
+            });
+        }
+
+        // Fungsi untuk menambahkan pengguna baru (Sign Up)
+        function addUser(name, email, password) {
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const userExists = users.some(user => user.email === email);
+
+            if (userExists) {
+                document.getElementById('message').textContent = 'Email sudah terdaftar!';
+            } else {
+                users.push({ name, email, password });
+                localStorage.setItem('users', JSON.stringify(users));
+                document.getElementById('message').textContent = 'Pendaftaran berhasil!';
+                loadUsers();
+            }
+        }
+
+        // Fungsi untuk melakukan login
+        function loginUser(email, password) {
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const user = users.find(user => user.email === email && user.password === password);
+
+            if (user) {
+                document.getElementById('message').textContent = `Login berhasil! Selamat datang, ${user.name}.`;
+                // Arahkan ke halaman lain setelah login berhasil
+                window.location.href = 'https://websitepaymenttemplate.vercel.app/'; // Ganti dengan URL halaman yang diinginkan
+            } else {
+                document.getElementById('message').textContent = 'Email atau kata sandi tidak terdaftar. Silakan daftar terlebih dahulu.';
+            }
+        }
+
+        // Fungsi untuk mengatur ulang kata sandi
+        function resetPassword(email) {
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const userIndex = users.findIndex(user => user.email === email); // Temukan indeks pengguna
+
+            if (userIndex !== -1) {
+                // Hapus pengguna dari array
+                users.splice(userIndex, 1);
+                localStorage.setItem('users', JSON.stringify(users)); // Perbarui LocalStorage
+                document.getElementById('message').textContent = 'Link reset kata sandi telah dikirim ke email Anda! Data Anda telah dihapus.';
+            } else {
+                document.getElementById('message').textContent = 'Email tidak terdaftar!';
+            }
+        }
+
+        // Event listener untuk form pendaftaran (Sign Up)
+        document.getElementById('signupForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Menghindari reload halaman
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+
+            addUser(name, email, password);
+
+            // Reset form pendaftaran
+            this.reset();
+        });
+
+        // Event listener untuk form login
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Menghindari reload halaman
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            loginUser(email, password);
+
+            // Reset form login
+            this.reset();
+        });
+
+        // Event listener untuk tautan Lupa Kata Sandi
+        document.getElementById('forgotPasswordLink').addEventListener('click', function(event) {
+            event.preventDefault();
+            document.getElementById('forgotPasswordForm').classList.toggle('hidden');
+        });
+
+        // Event listener untuk tombol Kirim Link Reset
+        document.getElementById('resetPasswordButton').addEventListener('click', function() {
+            const email = document.getElementById('resetEmail').value;
+            resetPassword(email);
+            document.getElementById('resetEmail').value = ''; // Reset input email
+        });
+
+        // Memuat pengguna terdaftar saat halaman dimuat
+        window.onload = loadUsers;
+    </script>
+</body>
+</html>
